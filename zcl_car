@@ -1,0 +1,61 @@
+REPORT zcl_car.
+
+DATA: lo_my_car   TYPE REF TO zcl_car,
+      lo_random   TYPE REF TO cl_abap_random_int,
+      lv_distance TYPE i.
+
+CREATE OBJECT lo_my_car
+  EXPORTING
+    iv_car_tank = 70.
+
+lo_my_car->set_consumption( iv_liter = 7 ).
+
+lo_random = cl_abap_random_int=>create(
+              EXPORTING
+                seed = cl_abap_random=>seed( ) ).
+
+DO.
+  lv_distance = lo_random->get_next( ).
+  lo_my_car->drive( lv_distance ).
+  IF lo_my_car->mv_drive_status <> 0.
+  EXIT. " Exit the loop if the fuel is depleted
+ENDIF.
+ENDDO.
+
+WRITE: / 'Remaining fuel:', lo_my_car->get_fuel_gauge( ).
+
+here are methods with source code below 
+  method CONSTRUCTOR.
+     mv_car_tank = iv_car_tank.
+  endmethod.
+```````````````````
+METHOD drive.
+  DATA: lv_fuel_used TYPE f.
+
+  lv_fuel_used = ( iv_distance / 100 ) * mv_consumption_per_100km.
+
+  IF mv_car_tank >= lv_fuel_used.
+    mv_car_tank = mv_car_tank - lv_fuel_used.
+  ELSE.
+    mv_car_tank = 0. " Ensure the tank is empty if not enough fuel remains
+    mv_drive_status = 1. " Set drive status to indicate no more fuel
+  ENDIF.
+ENDMETHOD.
+
+```````````````````
+    METHOD set_consumption.
+      mv_consumption_per_100km = iv_liter.
+    ENDMETHOD.
+
+``````````````````````
+METHOD get_fuel_gauge.
+  rv_volume = mv_car_tank. "rv_volume returning parameter
+ENDMETHOD.
+
+`````````````````````
+
+ATTRIBUTES
+
+MV_CAR_TANK Instance public float
+mv_counsumtion_per_100km instance private integer
+mv_drive_status instance public integer
